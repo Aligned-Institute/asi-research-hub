@@ -3,7 +3,7 @@ ARA v2 Application Factory
 Creates and configures the Flask application with all extensions.
 """
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, redirect
 from flask_cors import CORS
 from flask_talisman import Talisman
 
@@ -88,7 +88,7 @@ def init_extensions(app):
         # Disable CSP for now to allow legacy frontend scripts
         Talisman(
             app,
-            force_https=True,
+            force_https=False,
             strict_transport_security=True,
             content_security_policy=None
         )
@@ -182,13 +182,7 @@ def register_health_checks(app):
     @app.route('/', methods=['GET'])
     def root():
         """Root endpoint."""
-        return jsonify({
-            'name': 'ARA v2 API',
-            'version': '2.0.0',
-            'description': 'Aligned Research App - Intelligent Research Discovery Engine',
-            'health': '/health',
-            'docs': '/api/docs'
-        }), 200
+        return redirect("/static/login.html")
 
 
 if __name__ == '__main__':

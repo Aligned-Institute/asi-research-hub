@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alignment Research Application - Search</title>
+    <title>Alignment Research Portal - Search</title>
     <style>
         :root {
             /* Futuristic Dark Theme - Deep Blue/Black Base */
@@ -30,6 +30,27 @@
             --error-text: #ff0055;
             --glass-blur: blur(12px);
             --shadow-glow: 0 0 15px rgba(0, 242, 255, 0.1);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f0f4f8;
+            --bg-secondary: rgba(255, 255, 255, 0.85);
+            --bg-tertiary: rgba(220, 228, 240, 0.8);
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-tertiary: #64748b;
+            --accent-primary: #0284c7;
+            --accent-hover: #0369a1;
+            --accent-secondary: #7c3aed;
+            --border-color: rgba(2, 132, 199, 0.25);
+            --success-bg: rgba(16, 185, 129, 0.1);
+            --success-border: #10b981;
+            --success-text: #047857;
+            --error-bg: rgba(239, 68, 68, 0.1);
+            --error-border: #ef4444;
+            --error-text: #b91c1c;
+            --glass-blur: blur(12px);
+            --shadow-glow: 0 0 15px rgba(2, 132, 199, 0.1);
         }
 
         * {
@@ -324,15 +345,17 @@
         }
 
         .badge-link {
-            background: var(--bg-tertiary);
-            color: var(--text-secondary);
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+            border: 1px solid rgba(99, 102, 241, 0.35);
             text-decoration: none;
             transition: all 0.2s ease;
         }
 
         .badge-link:hover {
-            background: var(--accent-primary);
+            background: #6366f1;
             color: white;
+            border-color: #6366f1;
         }
 
         .metric-list {
@@ -382,6 +405,89 @@
         .close-btn {
             background: var(--bg-tertiary);
             color: var(--text-secondary);
+            font-size: 28px;
+            padding: 4px 12px;
+        }
+
+        #search-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+            backdrop-filter: blur(3px);
+        }
+
+        #search-overlay.active {
+            display: flex;
+        }
+
+        #search-overlay .overlay-text {
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            animation: pulse 1.4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .ref-subtitle {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 10px;
+            margin: 3px 4px 3px 0;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+            border: 1px solid rgba(99, 102, 241, 0.35);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tag:hover {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+
+        .paper-link-btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-right: 8px;
+            margin-top: 8px;
+        }
+
+        .paper-link-btn:hover {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
         }
 
         ::-webkit-scrollbar {
@@ -439,7 +545,7 @@
         <header class="header">
             <h1 style="display: flex; align-items: center; gap: 15px;">
                 <img src="/static/asi-logo.png" alt="ASI" style="height: 48px; width: 48px; object-fit: contain;">
-                <span>Alignment Research App</span>
+                <span>Alignment Research Portal</span>
             </h1>
             <div style="display: flex; gap: 15px;">
                 <button class="header-btn" onclick="openUploadModal()" title="Upload Paper">📤</button>
@@ -473,6 +579,7 @@
         </div>
 
         <!-- SEARCH RESULTS (Hidden by default, appears here) -->
+        <div id="search-overlay"><div class="overlay-text">🔍 Searching...</div></div>
         <div id="results-container" class="results"></div>
 
         <!-- METRICS DASHBOARD (Stacked Vertical Cards) -->
@@ -569,13 +676,15 @@
                             <div class="paper-abstract" id="paper-abstract"></div>
                         </div>
 
+                        <div class="ref-subtitle" style="margin-top: 34px;">📚 Reference Papers</div>
                         <div class="paper-links" id="paper-links"></div>
 
+                        <div class="ref-subtitle" style="margin-top: 16px;">🏷️ Reference Tags</div>
                         <div class="paper-tags" id="paper-tags"></div>
                     </div>
 
                     <div class="modal-sidebar">
-                        <div class="sidebar-title">📚 Reference Papers</div>
+                        <div class="ref-subtitle" style="margin-top: 12px; margin-bottom: 12px;">🔗 Related Papers</div>
                         <div id="references-list"></div>
                     </div>
                 </div>
@@ -648,6 +757,13 @@
         </div>
 
         <script>
+            // Auth guard — redirect before any rendering if no token
+            (function() {
+                if (!localStorage.getItem('access_token')) {
+                    window.location.replace('/static/login.html');
+                }
+            })();
+
             const API_URL = window.location.origin + '/api';
             let accessToken = localStorage.getItem('access_token');
 
@@ -720,6 +836,7 @@
                     const data = await response.json();
 
                     if (response.ok) {
+                        hideLoading();
                         displayResults(data);
                     } else {
                         if (response.status === 401) {
@@ -945,14 +1062,14 @@
                         if (relatedPapers.length > 0) {
                             displayReferences(relatedPapers.slice(0, 5));
                         } else {
-                            container.innerHTML = '<div class="no-references">No related papers found in Internal Database</div>';
+                            container.innerHTML = '<div class="no-references">No papers found</div>';
                         }
                     } else {
-                        container.innerHTML = '<div class="no-references">No related papers found in Internal Database</div>';
+                        container.innerHTML = '<div class="no-references">No papers found</div>';
                     }
                 } catch (error) {
                     console.error('Error loading related papers:', error);
-                    container.innerHTML = '<div class="no-references">No related papers found in Internal Database</div>';
+                    container.innerHTML = '<div class="no-references">No papers found</div>';
                 }
             }
 
@@ -1011,31 +1128,42 @@
             };
 
             window.loadPapersByTag = async function (tag, event) {
-                if (event) event.stopPropagation(); // Prevent modal from closing
+                if (event) event.stopPropagation();
 
                 const container = document.getElementById('references-list');
-                container.innerHTML = '<div class="no-references">Loading papers with tag: ' + tag + '...</div>';
+                container.innerHTML = '<div class="no-references">Loading papers tagged: ' + tag + '...</div>';
+
+                const currentPaperId = window.currentPaper?.id;
+                const slug = tag.replace(/\s+/g, '_').toLowerCase();
 
                 try {
-                    const response = await fetch(`${API_URL}/papers/search`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${accessToken}`
-                        },
-                        body: JSON.stringify({
-                            query: tag,
-                            sources: ['internal'],
-                            tags: [tag]
-                        })
+                    // Try tags API first (works for internal underscore tags)
+                    const tagResponse = await fetch(`${API_URL}/tags/${encodeURIComponent(slug)}`, {
+                        headers: { 'Authorization': `Bearer ${accessToken}` }
                     });
 
-                    if (response.ok) {
-                        const data = await response.json();
-                        // Filter out the current paper
-                        const currentPaperId = window.currentPaper?.id;
-                        const filteredPapers = data.papers.filter(p => p.id !== currentPaperId).slice(0, 5);
-                        displayReferences(filteredPapers);
+                    if (tagResponse.ok) {
+                        const data = await tagResponse.json();
+                        const papers = (data.recent_papers || [])
+                            .filter(p => p.id !== currentPaperId)
+                            .slice(0, 8);
+                        if (papers.length > 0) {
+                            displayReferences(papers);
+                            return;
+                        }
+                    }
+
+                    // Fallback: text search in internal DB
+                    const searchResponse = await fetch(`${API_URL}/papers/search`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+                        body: JSON.stringify({ query: tag, sources: ['internal'], max_results: 8 })
+                    });
+
+                    if (searchResponse.ok) {
+                        const data = await searchResponse.json();
+                        const papers = (data.papers || []).filter(p => p.id !== currentPaperId).slice(0, 8);
+                        displayReferences(papers);
                     } else {
                         displayReferences([]);
                     }
@@ -1073,7 +1201,7 @@
                 const container = document.getElementById('references-list');
 
                 if (!references || references.length === 0) {
-                    container.innerHTML = '<div class="no-references" style="text-align: center; padding: 30px 10px; line-height: 1.6;">👇<br><br>CLICK A TAG BELOW TO VIEW RELATED PAPERS</div>';
+                    container.innerHTML = '<div style="text-align: center; padding: 24px 10px; color: var(--text-secondary); font-size: 15px; font-weight: 500;">No papers found</div>';
                     return;
                 }
 
@@ -1140,12 +1268,16 @@
             });
 
             function showLoading() {
-                document.getElementById('results-container').innerHTML = `
-                <div class="loading">🔍 Searching...</div>
-            `;
+                document.getElementById('search-overlay').classList.add('active');
+                document.getElementById('results-container').innerHTML = '';
+            }
+
+            function hideLoading() {
+                document.getElementById('search-overlay').classList.remove('active');
             }
 
             function showError(message) {
+                hideLoading();
                 document.getElementById('results-container').innerHTML = `
                 <div class="status-message status-error">❌ ${message}</div>
             `;

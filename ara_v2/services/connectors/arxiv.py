@@ -5,11 +5,14 @@ API Docs: https://info.arxiv.org/help/api/index.html
 """
 
 import re
+import requests
 import feedparser
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from urllib.parse import urlencode
 from flask import current_app
+
+_REQUEST_TIMEOUT = 30
 
 
 class ArxivConnector:
@@ -84,7 +87,9 @@ class ArxivConnector:
 
         try:
             # Parse the Atom feed response
-            feed = feedparser.parse(url)
+            resp = requests.get(url, timeout=_REQUEST_TIMEOUT)
+            resp.raise_for_status()
+            feed = feedparser.parse(resp.content)
 
             # Check for errors
             if feed.bozo and not feed.entries:
@@ -133,7 +138,9 @@ class ArxivConnector:
         url = f"{self.BASE_URL}?{urlencode(params)}"
 
         try:
-            feed = feedparser.parse(url)
+            resp = requests.get(url, timeout=_REQUEST_TIMEOUT)
+            resp.raise_for_status()
+            feed = feedparser.parse(resp.content)
 
             if not feed.entries:
                 return None

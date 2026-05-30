@@ -141,7 +141,7 @@ def get_tag(tag_slug):
                 'title': paper.title,
                 'year': paper.year,
                 'authors': paper.authors,
-                'citation_score': float(paper.citation_score) if paper.citation_score else None
+                'citation_count': paper.citation_count
             }
             for paper in recent_papers
         ]

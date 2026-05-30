@@ -501,14 +501,7 @@ def get_paper(paper_id):
                 PaperTag.paper_id == paper_id
             ).all()
             if paper_tags:
-                paper_data['tags'] = [
-                    {
-                        'name': tag.name,
-                        'slug': tag.slug,
-                        'confidence': paper_tag.confidence
-                    }
-                    for paper_tag, tag in paper_tags
-                ]
+                paper_data['tags'] = [tag.name for paper_tag, tag in paper_tags]
         except Exception:
             # If PaperTag relationship doesn't exist, use tags from paper.to_dict()
             pass
@@ -752,24 +745,21 @@ def upload_paper():
         is_json = request.is_json
 
         if is_json:
-            # URL-based upload
+            # URL-based upload — store metadata + link only, no PDF download
             data = request.get_json()
             url = data.get('url', '').strip()
 
             if not url:
                 raise ValidationError('No URL provided')
 
-            # Download PDF from URL
-            filepath = download_pdf_from_url(url, upload_folder)
-            filename = os.path.basename(filepath)
-
-            # Get metadata from JSON
+            filepath = None
+            filename = None
             title = data.get('title', '').strip()
             authors = data.get('authors', '').strip() or 'Unknown'
             year = data.get('year')
             abstract = data.get('abstract', '').strip()
-            tags = data.get('tags', [])  # User-provided tags
-            external_url = url  # Store the original URL
+            tags = data.get('tags', [])
+            external_url = url
 
         else:
             # File-based upload (backward compatibility)
@@ -828,7 +818,7 @@ def upload_paper():
             else:
                 if filepath and os.path.exists(filepath):
                     os.remove(filepath)
-                raise ConflictError('Paper with similar title already exists')
+                raise ConflictError(f'Paper already exists: {duplicate.title}')
 
         # Create paper data
         timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
@@ -839,9 +829,9 @@ def upload_paper():
             'authors': authors,
             'year': year,
             'abstract': abstract,
-            'pdf_path': f'static/uploads/{os.path.basename(filepath)}',
+            'pdf_path': f'static/uploads/{os.path.basename(filepath)}' if filepath else None,
             'pdf_text': pdf_text,
-            'url': external_url or f'/static/uploads/{os.path.basename(filepath)}',
+            'url': external_url or (f'/static/uploads/{os.path.basename(filepath)}' if filepath else None),
             'added_by': g.current_user.id
         }
 
